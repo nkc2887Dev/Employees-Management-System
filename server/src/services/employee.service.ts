@@ -1,4 +1,4 @@
-import { ResultSetHeader,RowDataPacket } from 'mysql2';
+import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import fs from 'fs';
 import path from 'path';
 import pool from '../config/database';
@@ -12,7 +12,7 @@ export const createEmployeeService = async (body: any, file?: Express.Multer.Fil
 
   const [existingEmployees] = await conn.execute<EmployeeRow[]>(
     'SELECT id FROM employees WHERE email = ?',
-    [body.email]
+    [body.email],
   );
   if (existingEmployees.length > 0) {
     await conn.end();
@@ -21,7 +21,7 @@ export const createEmployeeService = async (body: any, file?: Express.Multer.Fil
 
   const [departments] = await conn.execute<EmployeeRow[]>(
     'SELECT id FROM departments WHERE id = ?',
-    [body.department_id]
+    [body.department_id],
   );
   if (!departments.length) {
     await conn.end();
@@ -46,13 +46,12 @@ export const createEmployeeService = async (body: any, file?: Express.Multer.Fil
   const [result] = await conn.execute<ResultSetHeader>(
     `INSERT INTO employees (name, email, phone, dob, department_id, salary, status, photo) 
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [name, email, phone, dob, department_id, salary, status, photoFileName]
+    [name, email, phone, dob, department_id, salary, status, photoFileName],
   );
 
-  const [employees] = await conn.execute<EmployeeRow[]>(
-    'SELECT * FROM employees WHERE id = ?',
-    [result.insertId]
-  );
+  const [employees] = await conn.execute<EmployeeRow[]>('SELECT * FROM employees WHERE id = ?', [
+    result.insertId,
+  ]);
 
   await conn.end();
 
@@ -224,7 +223,7 @@ export const updateEmployeeService = async (id: string, body: any, file?: Expres
     return {
       status: 200,
       success: true,
-      message:  MESSAGE.SUCCESS.EMPLOYEES.UPDATED,
+      message: MESSAGE.SUCCESS.EMPLOYEES.UPDATED,
       data: employeeWithPhotoUrl,
     };
   } catch (error: any) {
@@ -297,7 +296,7 @@ export const getEmployeeStatsServic = async () => {
     };
   } catch (error) {
     console.error('Error in getEmployees service:', error);
-    const err: any = new Error( error.message || MESSAGE.ERROR.EMPLOYEES.FETCHED);
+    const err: any = new Error(error.message || MESSAGE.ERROR.EMPLOYEES.FETCHED);
     err.statusCode = 500;
     throw err;
   }

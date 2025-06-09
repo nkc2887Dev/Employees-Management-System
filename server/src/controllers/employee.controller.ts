@@ -2,7 +2,12 @@ import { Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
 import { createConnection } from '../config/db.config';
 import { ResultSetHeader } from 'mysql2';
-import { createEmployeeService, getEmployees, getEmployeeStatsServic, updateEmployeeService } from '../services/employee.service';
+import {
+  createEmployeeService,
+  getEmployees,
+  getEmployeeStatsServic,
+  updateEmployeeService,
+} from '../services/employee.service';
 import MESSAGE from '../constants/messages.constant';
 import { getPhotoUrl } from '../services/common.service';
 import { EmployeeRow } from '../@types/employee.interface';
@@ -125,7 +130,9 @@ export const updateEmployee = async (req: Request, res: Response) => {
     sendResponse({
       res,
       ...result,
-      message: result.message || (result.success ? MESSAGE.SUCCESS.EMPLOYEES.UPDATED : MESSAGE.ERROR.EMPLOYEES.UPDATED),
+      message:
+        result.message ||
+        (result.success ? MESSAGE.SUCCESS.EMPLOYEES.UPDATED : MESSAGE.ERROR.EMPLOYEES.UPDATED),
     });
   } catch (error: any) {
     console.error('Error updating employee:', error);
@@ -170,7 +177,7 @@ export const getEmployeeStats = async (_req: Request, res: Response) => {
       success: true,
       data: result,
       statusCode: 200,
-      message: MESSAGE.SUCCESS.EMPLOYEES.STATS
+      message: MESSAGE.SUCCESS.EMPLOYEES.STATS,
     });
   } catch (error: any) {
     console.error('Error in getEmployeeStats:', error);

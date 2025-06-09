@@ -6,7 +6,7 @@ interface Option {
 }
 
 interface SelectFieldProps {
-  label: string;
+  label?: string;
   name: string;
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
@@ -30,10 +30,12 @@ const SelectField: React.FC<SelectFieldProps> = ({
 }) => {
   return (
     <div className="mb-4">
-      <label htmlFor={name} className="block text-sm font-medium text-gray-700">
-        {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
-      </label>
+      {label && (
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
+      )}
       <div className="mt-1">
         <select
           id={name}

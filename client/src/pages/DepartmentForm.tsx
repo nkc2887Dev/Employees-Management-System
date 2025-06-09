@@ -28,7 +28,7 @@ const DepartmentForm: React.FC = () => {
             value={formik.values.name}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            error={formik.touched.name && formik.errors.name}
+            error={formik.touched.name ? formik.errors.name : undefined}
             required={true}
           />
 
@@ -38,7 +38,7 @@ const DepartmentForm: React.FC = () => {
             value={formik.values.status}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            error={formik.touched.status && formik.errors.status}
+            error={formik.touched.status ? formik.errors.status : undefined}
             required={true}
             options={[
               { value: 'active', label: 'Active' },

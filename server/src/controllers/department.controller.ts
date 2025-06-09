@@ -20,7 +20,7 @@ export const createDepartment = async (req: Request, res: Response) => {
       success: true,
       statusCode: 201,
       data: result,
-      message: MESSAGE.SUCCESS.DEPARTMENTS.CREATED
+      message: MESSAGE.SUCCESS.DEPARTMENTS.CREATED,
     });
   } catch (error) {
     console.error('Error creating departments:', error);
