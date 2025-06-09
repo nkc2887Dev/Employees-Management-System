@@ -3,7 +3,7 @@ import { sendResponse } from '../utils/sendResponse';
 import { createDepartmentService, getDepartmentsService } from '../services/department.service';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import pool from '../config/database';
-import MESSAGE from 'src/constants/messages.constant';
+import MESSAGE from '../constants/messages.constant';
 
 interface Department extends RowDataPacket {
   id: number;
@@ -90,10 +90,7 @@ export const getDepartmentById = async (req: Request, res: Response) => {
       });
       return;
     }
-    const department = {
-      ...rows[0],
-      employee_count: Number(rows[0].employee_count),
-    };
+    const department = { ...rows[0], employee_count: Number(rows[0].employee_count) };
     sendResponse({
       res,
       success: true,

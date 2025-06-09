@@ -1,107 +1,28 @@
 import { Request, Response } from 'express';
 import { sendResponse } from '../utils/sendResponse';
 import { createConnection } from '../config/db.config';
-import { ResultSetHeader, RowDataPacket } from 'mysql2';
-import { getEmployees } from '../services/employee.service';
-import path from 'path';
-import fs from 'fs';
-import MESSAGE from 'src/constants/messages.constant';
-
-interface Employee extends RowDataPacket {
-  id: number;
-  department_id: number;
-  department_name?: string;
-  name: string;
-  email: string;
-  phone: string;
-  dob: string;
-  salary: number;
-  status: 'active' | 'inactive';
-  photo?: string;
-}
-
-const getPhotoUrl = (photoFileName: string | null): string | null => {
-  if (!photoFileName) return null;
-  return `/uploads/${photoFileName}`;
-};
+import { ResultSetHeader } from 'mysql2';
+import { createEmployeeService, getEmployees, getEmployeeStatsServic, updateEmployeeService } from '../services/employee.service';
+import MESSAGE from '../constants/messages.constant';
+import { getPhotoUrl } from '../services/common.service';
+import { EmployeeRow } from '../@types/employee.interface';
 
 export const createEmployee = async (req: Request, res: Response) => {
   try {
-    const conn = await createConnection();
-    const [existingEmployees] = await conn.execute<Employee[]>(
-      'SELECT id FROM employees WHERE email = ?',
-      [req.body.email],
-    );
-    if (existingEmployees.length > 0) {
-      await conn.end();
-      sendResponse({
+    const result = await createEmployeeService(req.body, req.file);
+
+    if ('error' in result) {
+      return sendResponse({
         res,
         success: false,
-        message: 'Email already exists',
-        statusCode: 400,
+        message: result.error || MESSAGE.ERROR.EMPLOYEES.CREATED,
+        statusCode: result.status || 400,
       });
-      return;
-    }
-    const [departments] = await conn.execute<Employee[]>(
-      'SELECT id FROM departments WHERE id = ?',
-      [req.body.department_id],
-    );
-    if (!departments.length) {
-      await conn.end();
-      sendResponse({
-        res,
-        success: false,
-        message: MESSAGE.ERROR.DEPARTMENTS.INVALID_ID,
-        statusCode: 400,
-      });
-      return;
-    }
-
-    let photoFileName = null;
-    if (req.file) {
-      const fileExt = path.extname(req.file.originalname);
-      photoFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
-
-      const uploadsDir = path.join(__dirname, '../uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-
-      const filePath = path.join(uploadsDir, photoFileName);
-      fs.writeFileSync(filePath, req.file.buffer);
-    }
-
-    const { name, email, phone, dob, department_id, salary, status } = req.body;
-    const [result] = await conn.execute<ResultSetHeader>(
-      `INSERT INTO employees (name, email, phone, dob, department_id, salary, status, photo) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, email, phone, dob, department_id, salary, status, photoFileName],
-    );
-
-    const [employees] = await conn.execute<Employee[]>('SELECT * FROM employees WHERE id = ?', [
-      result.insertId,
-    ]);
-    await conn.end();
-
-    if (!employees.length) {
-      if (photoFileName) {
-        const filePath = path.join(__dirname, '../uploads', photoFileName);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      }
-      sendResponse({
-        res,
-        success: false,
-        message: MESSAGE.ERROR.EMPLOYEES.CREATED,
-        statusCode: 500,
-      });
-      return;
     }
 
     const employeeWithPhotoUrl = {
-      ...employees[0],
-      photo: getPhotoUrl(photoFileName),
+      ...result.data,
+      photo: getPhotoUrl(result.data.photo || null),
     };
 
     sendResponse({
@@ -109,7 +30,7 @@ export const createEmployee = async (req: Request, res: Response) => {
       success: true,
       message: MESSAGE.SUCCESS.EMPLOYEES.CREATED,
       data: employeeWithPhotoUrl,
-      statusCode: 201,
+      statusCode: result.status,
     });
   } catch (error: any) {
     console.error('Error creating employee:', error);
@@ -118,7 +39,7 @@ export const createEmployee = async (req: Request, res: Response) => {
       success: false,
       message:
         error.code === 'ER_DUP_ENTRY'
-          ? 'Email already exists'
+          ? MESSAGE.SUCCESS.EMPLOYEES.ALREADY_EXISTS
           : error.message || MESSAGE.ERROR.EMPLOYEES.CREATED,
       statusCode: error.code === 'ER_DUP_ENTRY' ? 400 : 500,
     });
@@ -160,7 +81,7 @@ export const getAllEmployees = async (req: Request, res: Response) => {
 export const getEmployeeById = async (req: Request, res: Response) => {
   try {
     const conn = await createConnection();
-    const [rows] = await conn.execute<Employee[]>('SELECT * FROM employees WHERE id = ?', [
+    const [rows] = await conn.execute<EmployeeRow[]>('SELECT * FROM employees WHERE id = ?', [
       req.params.id,
     ]);
     await conn.end();
@@ -168,7 +89,7 @@ export const getEmployeeById = async (req: Request, res: Response) => {
       sendResponse({
         res,
         success: false,
-        message:  MESSAGE.ERROR.EMPLOYEES.NOT_FOUND,
+        message: MESSAGE.ERROR.EMPLOYEES.NOT_FOUND,
         statusCode: 404,
       });
       return;
@@ -199,112 +120,12 @@ export const getEmployeeById = async (req: Request, res: Response) => {
 
 export const updateEmployee = async (req: Request, res: Response) => {
   try {
-    const conn = await createConnection();
-    const [existingEmployee] = await conn.execute<Employee[]>(
-      'SELECT * FROM employees WHERE id = ?',
-      [req.params.id],
-    );
-    if (!existingEmployee.length) {
-      await conn.end();
-      sendResponse({
-        res,
-        success: false,
-        message: MESSAGE.ERROR.EMPLOYEES.NOT_FOUND,
-        statusCode: 404,
-      });
-      return;
-    }
-
-    let photoFileName = existingEmployee[0].photo;
-
-    if (req.file) {
-      if (existingEmployee[0].photo) {
-        const oldPhotoPath = path.join(__dirname, '../uploads', existingEmployee[0].photo);
-        if (fs.existsSync(oldPhotoPath)) {
-          fs.unlinkSync(oldPhotoPath);
-        }
-      }
-
-      const fileExt = path.extname(req.file.originalname);
-      photoFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
-
-      const uploadsDir = path.join(__dirname, '../uploads');
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-
-      const filePath = path.join(uploadsDir, photoFileName);
-      fs.writeFileSync(filePath, req.file.buffer);
-    }
-
-    const { email, ...updateData } = req.body;
-    const updateFields: string[] = [];
-    const updateValues: any[] = [];
-
-    if (updateData.name !== undefined) {
-      updateFields.push('name = ?');
-      updateValues.push(updateData.name);
-    }
-    if (updateData.phone !== undefined) {
-      updateFields.push('phone = ?');
-      updateValues.push(updateData.phone);
-    }
-    if (updateData.dob !== undefined) {
-      updateFields.push('dob = ?');
-      updateValues.push(updateData.dob);
-    }
-    if (updateData.department_id !== undefined) {
-      updateFields.push('department_id = ?');
-      updateValues.push(updateData.department_id);
-    }
-    if (updateData.salary !== undefined) {
-      updateFields.push('salary = ?');
-      updateValues.push(updateData.salary);
-    }
-    if (updateData.status !== undefined) {
-      updateFields.push('status = ?');
-      updateValues.push(updateData.status);
-    }
-
-    if (req.file) {
-      updateFields.push('photo = ?');
-      updateValues.push(photoFileName);
-    }
-
-    if (!updateFields.length) {
-      await conn.end();
-      sendResponse({
-        res,
-        success: false,
-        message: 'No fields to update',
-        statusCode: 400,
-      });
-      return;
-    }
-
-    updateValues.push(req.params.id);
-    await conn.execute<ResultSetHeader>(
-      `UPDATE employees SET ${updateFields.join(', ')} WHERE id = ?`,
-      updateValues,
-    );
-
-    const [updatedEmployee] = await conn.execute<Employee[]>(
-      'SELECT * FROM employees WHERE id = ?',
-      [req.params.id],
-    );
-    await conn.end();
-
-    const employeeWithPhotoUrl = {
-      ...updatedEmployee[0],
-      photo: getPhotoUrl(updatedEmployee[0].photo || null),
-    };
+    const result = await updateEmployeeService(req.params.id, req.body, req.file || undefined);
 
     sendResponse({
       res,
-      success: true,
-      message: MESSAGE.SUCCESS.EMPLOYEES.UPDATED,
-      data: employeeWithPhotoUrl,
-      statusCode: 200,
+      ...result,
+      message: result.message || (result.success ? MESSAGE.SUCCESS.EMPLOYEES.UPDATED : MESSAGE.ERROR.EMPLOYEES.UPDATED),
     });
   } catch (error: any) {
     console.error('Error updating employee:', error);
@@ -343,66 +164,7 @@ export const deleteEmployee = async (req: Request, res: Response) => {
 
 export const getEmployeeStats = async (_req: Request, res: Response) => {
   try {
-    const conn = await createConnection();
-    const [departmentHighestSalary] = await conn.execute<RowDataPacket[]>(
-      `
-      SELECT 
-        d.name as department, 
-        MAX(e.salary) as salary
-      FROM departments d
-      LEFT JOIN employees e ON e.department_id = d.id
-      GROUP BY d.id, d.name
-      ORDER BY salary DESC
-    `,
-    );
-    const [salaryRangeCount] = await conn.execute<RowDataPacket[]>(
-      `
-      SELECT 
-        CASE
-          WHEN salary <= 50000 THEN '0-50000'
-          WHEN salary > 50000 AND salary <= 100000 THEN '50001-100000'
-          ELSE '100000+'
-        END as \`range\`,
-        COUNT(*) as count
-      FROM employees
-      GROUP BY 
-        CASE
-          WHEN salary <= 50000 THEN '0-50000'
-          WHEN salary > 50000 AND salary <= 100000 THEN '50001-100000'
-          ELSE '100000+'
-        END
-      ORDER BY 
-        CASE \`range\`
-          WHEN '0-50000' THEN 1
-          WHEN '50001-100000' THEN 2
-          ELSE 3
-        END
-    `,
-    );
-    const [youngestByDepartment] = await conn.execute<RowDataPacket[]>(
-      `
-      SELECT 
-        d.name as department,
-        e.name,
-        TIMESTAMPDIFF(YEAR, e.dob, CURDATE()) as age
-      FROM departments d
-      LEFT JOIN employees e ON e.department_id = d.id
-      WHERE (e.department_id, e.dob) IN (
-        SELECT 
-          department_id,
-          MAX(dob) as max_dob
-        FROM employees
-        GROUP BY department_id
-      ) OR e.id IS NULL
-      ORDER BY d.name
-    `,
-    );
-    await conn.end();
-    const result = {
-      departmentHighestSalary: departmentHighestSalary || [],
-      salaryRangeCount: salaryRangeCount || [],
-      youngestByDepartment: youngestByDepartment || [],
-    };
+    const result = await getEmployeeStatsServic();
     sendResponse({
       res,
       success: true,

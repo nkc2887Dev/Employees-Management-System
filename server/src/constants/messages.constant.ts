@@ -5,7 +5,8 @@ const MESSAGE = {
             CREATED: 'Employee created successfully',
             UPDATED: 'Employee updated successfully',
             DELETED: 'Employee deleted successfully',
-            STATS: 'Employee statistics fetched successfully'
+            STATS: 'Employee statistics fetched successfully',
+            ALREADY_EXISTS: 'Email already exists'
         },
         DEPARTMENTS: {
             FETCHED: 'Department fetched successfully',

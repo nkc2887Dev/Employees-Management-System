@@ -1,3 +1,5 @@
+import { RowDataPacket } from "mysql2";
+
 export interface Employee {
   id: number;
   department_id: number;
@@ -12,7 +14,18 @@ export interface Employee {
   modified_at: string;
   department_name?: string;
 }
-
+export interface EmployeeRow extends RowDataPacket {
+  id: number;
+  department_id: number;
+  department_name?: string;
+  name: string;
+  email: string;
+  phone: string;
+  dob: string;
+  salary: number;
+  status: 'active' | 'inactive';
+  photo?: string;
+}
 export interface EmployeeFilters {
   status?: string;
   department?: number;
