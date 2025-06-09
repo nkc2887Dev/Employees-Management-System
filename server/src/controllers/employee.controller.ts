@@ -19,7 +19,6 @@ interface Employee extends RowDataPacket {
   photo?: string;
 }
 
-// Helper function to get photo URL
 const getPhotoUrl = (photoFileName: string | null): string | null => {
   if (!photoFileName) return null;
   return `/uploads/${photoFileName}`;
@@ -59,17 +58,14 @@ export const createEmployee = async (req: Request, res: Response) => {
 
     let photoFileName = null;
     if (req.file) {
-      // Generate unique filename
       const fileExt = path.extname(req.file.originalname);
       photoFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
 
-      // Ensure uploads directory exists
       const uploadsDir = path.join(__dirname, '../uploads');
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      // Save file
       const filePath = path.join(uploadsDir, photoFileName);
       fs.writeFileSync(filePath, req.file.buffer);
     }
@@ -102,7 +98,6 @@ export const createEmployee = async (req: Request, res: Response) => {
       return;
     }
 
-    // Add photo to response
     const employeeWithPhotoUrl = {
       ...employees[0],
       photo: getPhotoUrl(photoFileName),
@@ -168,7 +163,7 @@ export const getEmployeeById = async (req: Request, res: Response) => {
       req.params.id,
     ]);
     await conn.end();
-    if (rows.length === 0) {
+    if (!rows.length) {
       sendResponse({
         res,
         success: false,
@@ -178,7 +173,6 @@ export const getEmployeeById = async (req: Request, res: Response) => {
       return;
     }
 
-    // Add photo to response
     const employeeWithPhotoUrl = {
       ...rows[0],
       photo: getPhotoUrl(rows[0].photo || null),
@@ -209,7 +203,7 @@ export const updateEmployee = async (req: Request, res: Response) => {
       'SELECT * FROM employees WHERE id = ?',
       [req.params.id],
     );
-    if (existingEmployee.length === 0) {
+    if (!existingEmployee.length) {
       await conn.end();
       sendResponse({
         res,
@@ -222,9 +216,7 @@ export const updateEmployee = async (req: Request, res: Response) => {
 
     let photoFileName = existingEmployee[0].photo;
 
-    // Handle photo update if a new file is uploaded
     if (req.file) {
-      // Delete old photo if it exists
       if (existingEmployee[0].photo) {
         const oldPhotoPath = path.join(__dirname, '../uploads', existingEmployee[0].photo);
         if (fs.existsSync(oldPhotoPath)) {
@@ -232,17 +224,14 @@ export const updateEmployee = async (req: Request, res: Response) => {
         }
       }
 
-      // Save new photo
       const fileExt = path.extname(req.file.originalname);
       photoFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
 
-      // Ensure uploads directory exists
       const uploadsDir = path.join(__dirname, '../uploads');
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      // Save file
       const filePath = path.join(uploadsDir, photoFileName);
       fs.writeFileSync(filePath, req.file.buffer);
     }
@@ -276,13 +265,12 @@ export const updateEmployee = async (req: Request, res: Response) => {
       updateValues.push(updateData.status);
     }
 
-    // Always update photo if we have a new one
     if (req.file) {
       updateFields.push('photo = ?');
       updateValues.push(photoFileName);
     }
 
-    if (updateFields.length === 0) {
+    if (!updateFields.length) {
       await conn.end();
       sendResponse({
         res,
@@ -305,7 +293,6 @@ export const updateEmployee = async (req: Request, res: Response) => {
     );
     await conn.end();
 
-    // Add photo to response
     const employeeWithPhotoUrl = {
       ...updatedEmployee[0],
       photo: getPhotoUrl(updatedEmployee[0].photo || null),

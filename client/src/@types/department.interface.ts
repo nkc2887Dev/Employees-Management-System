@@ -2,7 +2,7 @@ export interface Department {
   id: number;
   name: string;
   status: 'active' | 'inactive';
-  employee_count: number;
+  employee_count?: number;
 }
 
 export interface DepartmentFilters {

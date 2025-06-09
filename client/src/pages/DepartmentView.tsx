@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getDepartmentById } from '../services/departmentService';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const DepartmentView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,9 +18,7 @@ const DepartmentView: React.FC = () => {
     enabled: Boolean(id),
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  if (isLoading) return <LoadingSpinner />;
 
   if (error || !department) {
     return (
@@ -84,26 +83,6 @@ const DepartmentView: React.FC = () => {
                   </span>
                 </div>
               </dd>
-            </div>
-
-            <div className="sm:col-span-2 mt-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">Quick Actions</h3>
-              </div>
-              <div className="mt-3 flex flex-col sm:flex-row sm:space-x-4">
-                <button
-                  onClick={() => navigate('/employees/new')}
-                  className="mt-2 sm:mt-0 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Add New Employee
-                </button>
-                <button
-                  onClick={() => navigate('/employees')}
-                  className="mt-2 sm:mt-0 inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  View All Employees
-                </button>
-              </div>
             </div>
           </dl>
         </div>

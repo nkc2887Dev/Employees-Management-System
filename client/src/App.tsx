@@ -1,7 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Provider } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { store } from './store';
 import Layout from './components/Layout';
 import EmployeeList from './pages/EmployeeList';
 import EmployeeForm from './pages/EmployeeForm';
@@ -17,7 +15,7 @@ import NotFound from './pages/NotFound';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       retry: 1,
     },
   },
@@ -25,44 +23,42 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <Router>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Navigate to="/employees" replace />} />
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Layout>
+          <Routes>
+            <Route path="/" element={<Navigate to="/employees" replace />} />
 
-              {/* Employee Routes */}
-              <Route path="/employees">
-                <Route index element={<EmployeeList />} />
-                <Route path="new" element={<EmployeeForm />} />
-                <Route path=":id" element={<EmployeeView />} />
-                <Route path=":id/edit" element={<EmployeeForm />} />
-              </Route>
+            {/* Employee Routes */}
+            <Route path="/employees">
+              <Route index element={<EmployeeList />} />
+              <Route path="new" element={<EmployeeForm />} />
+              <Route path=":id" element={<EmployeeView />} />
+              <Route path=":id/edit" element={<EmployeeForm />} />
+            </Route>
 
-              {/* Department Routes */}
-              <Route path="/departments">
-                <Route index element={<DepartmentList />} />
-                <Route path="new" element={<DepartmentForm />} />
-                <Route path=":id" element={<DepartmentView />} />
-                <Route path=":id/edit" element={<DepartmentForm />} />
-              </Route>
+            {/* Department Routes */}
+            <Route path="/departments">
+              <Route index element={<DepartmentList />} />
+              <Route path="new" element={<DepartmentForm />} />
+              <Route path=":id" element={<DepartmentView />} />
+              <Route path=":id/edit" element={<DepartmentForm />} />
+            </Route>
 
-              {/* Statistics Routes */}
-              <Route path="/statistics">
-                <Route path="department-salaries" element={<DepartmentSalaryPage />} />
-                <Route path="salary-ranges" element={<SalaryRangePage />} />
-                <Route path="youngest-employees" element={<YoungestEmployeePage />} />
-                <Route index element={<Navigate to="/statistics/department-salaries" replace />} />
-              </Route>
+            {/* Statistics Routes */}
+            <Route path="/statistics">
+              <Route path="department-salaries" element={<DepartmentSalaryPage />} />
+              <Route path="salary-ranges" element={<SalaryRangePage />} />
+              <Route path="youngest-employees" element={<YoungestEmployeePage />} />
+              <Route index element={<Navigate to="/statistics/department-salaries" replace />} />
+            </Route>
 
-              {/* 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </Router>
-      </QueryClientProvider>
-    </Provider>
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Layout>
+      </Router>
+    </QueryClientProvider>
   );
 }
 

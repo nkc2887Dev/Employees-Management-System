@@ -2,13 +2,11 @@ import pool from '../config/database';
 import { DepartmentFilters, Department } from '../@types/department.interface';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
-// Get all departments with pagination and filters
 export const getDepartmentsService = async (filters: DepartmentFilters) => {
   try {
     const { status, search, page = 1, limit = 10 } = filters;
     const offset = (page - 1) * limit;
 
-    // Base query for both count and data
     let baseQuery = `
         FROM departments d
         LEFT JOIN (
@@ -30,12 +28,10 @@ export const getDepartmentsService = async (filters: DepartmentFilters) => {
       params.push(`%${search}%`);
     }
 
-    // Get total count
     const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
     const [countResult] = await pool.query<RowDataPacket[]>(countQuery, params);
     const total = countResult[0].total;
 
-    // Get paginated results with employee count
     const dataQuery = `
         SELECT 
           d.*,
@@ -45,7 +41,6 @@ export const getDepartmentsService = async (filters: DepartmentFilters) => {
         LIMIT ? OFFSET ?
       `;
 
-    // Clone params array and add pagination parameters
     const dataParams = [...params, limit, offset];
     const [rows] = await pool.query<RowDataPacket[]>(dataQuery, dataParams);
 
@@ -64,13 +59,11 @@ export const getDepartmentsService = async (filters: DepartmentFilters) => {
   }
 };
 
-// Get single department by ID
 export const getDepartmentByIdService = async (id: number): Promise<Department | null> => {
   const [rows] = await pool.query<RowDataPacket[]>('SELECT * FROM departments WHERE id = ?', [id]);
   return (rows[0] as Department) || null;
 };
 
-// Create new department
 export const createDepartmentService = async (
   data: Omit<Department, 'id' | 'created_at' | 'modified_at'>,
 ): Promise<Department> => {

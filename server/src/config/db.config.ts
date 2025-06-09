@@ -2,7 +2,6 @@ import mysql from 'mysql2/promise';
 import { config } from 'dotenv';
 import processEnvConfig from './processEnv.config';
 
-// Load environment variables
 config();
 
 const createIndexIfNotExists = async (
@@ -24,7 +23,6 @@ const createIndexIfNotExists = async (
       CREATE INDEX ${indexName} ON ${table}(${column})
     `);
   } catch (error) {
-    // Index might already exist, which is fine
     console.info(`Note: Index ${indexName} might already exist`);
   }
 };
@@ -38,7 +36,6 @@ export const initializeDatabase = async () => {
   });
 
   try {
-    // Create tables
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS departments (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -66,7 +63,6 @@ export const initializeDatabase = async () => {
       )
     `);
 
-    // Create indexes if they don't exist
     await createIndexIfNotExists(
       connection,
       'employees',

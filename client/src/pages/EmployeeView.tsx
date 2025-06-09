@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getEmployeeById } from '../services/employeeService';
 import { getDepartmentById } from '../services/departmentService';
 import { getImageUrl } from '../utils/apiUtils';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const EmployeeView: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,9 +22,7 @@ const EmployeeView: React.FC = () => {
     enabled: Boolean(employee?.department_id),
   });
 
-  if (isLoadingEmployee || isLoadingDepartment) {
-    return <div>Loading...</div>;
-  }
+  if (isLoadingEmployee || isLoadingDepartment) return <LoadingSpinner />;
 
   if (!employee) {
     return (
@@ -73,7 +72,7 @@ const EmployeeView: React.FC = () => {
 
             <div>
               <dt className="text-sm font-medium text-gray-500">Department</dt>
-              <dd className="mt-1 text-sm text-gray-900">{department?.name || 'Loading...'}</dd>
+              <dd className="mt-1 text-sm text-gray-900">{department?.name}</dd>
             </div>
 
             <div>

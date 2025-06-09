@@ -5,20 +5,16 @@ import { getAllDepartments, deleteDepartment } from '../services/departmentServi
 import LoadingSpinner from '../components/LoadingSpinner';
 import PageContainer from '../components/PageContainer';
 import debounce from 'lodash/debounce';
-import {
-  AddIcon,
-  ViewIcon,
-  EditIcon,
-  ErrorIcon,
-  EmptyIcon,
-  PreviousIcon,
-  NextIcon,
-  DeleteIcon,
-} from '../icons';
+import { ViewIcon, EditIcon, EmptyIcon, DeleteIcon } from '../icons';
+import ErrorHandling from '../components/Error';
+import { ApiError } from '../@types/index.interface';
+import AddNew from '../components/AddNew';
+import Pagination from '../components/Pagination';
+import SelectField from '../components/SelectField';
 
 const DepartmentList: React.FC = () => {
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
   const [filters, setFilters] = useState({
     status: '',
     search: '',
@@ -44,6 +40,11 @@ const DepartmentList: React.FC = () => {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    setPage(1);
   };
 
   const debouncedSearch = useCallback(
@@ -75,7 +76,7 @@ const DepartmentList: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       setDeleteId(null);
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       setDeleteError(
         error?.response?.data?.message || error.message || 'Failed to delete department.',
       );
@@ -83,49 +84,24 @@ const DepartmentList: React.FC = () => {
   });
 
   if (isLoading) return <LoadingSpinner />;
-
-  if (error) {
-    return (
-      <PageContainer>
-        <div className="p-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-            <ErrorIcon className="w-8 h-8 text-red-600" />
-          </div>
-          <h3 className="text-lg font-medium text-gray-900">Error Loading Departments</h3>
-          <p className="mt-2 text-sm text-gray-500">
-            Please try again later or contact support if the problem persists.
-          </p>
-        </div>
-      </PageContainer>
-    );
-  }
-
-  const addDepartmentButton = (
-    <Link
-      to="/departments/new"
-      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-    >
-      <AddIcon className="-ml-1 mr-2 h-5 w-5" />
-      Add Department
-    </Link>
-  );
+  if (error) return <ErrorHandling title="Departments" />;
 
   return (
-    <PageContainer title="Departments" action={addDepartmentButton}>
+    <PageContainer
+      title="Departments"
+      action={<AddNew title="Department" route="/departments/new" />}
+    >
       <div className="mb-4 p-4 flex justify-between items-center">
         <div className="flex gap-4">
-          <div>
-            <select
-              name="status"
-              value={filters.status}
-              onChange={handleFilterChange}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
+          <SelectField
+            name="status"
+            value={filters.status}
+            onChange={handleFilterChange}
+            options={[
+              { value: 'active', label: 'Active' },
+              { value: 'inactive', label: 'Inactive' },
+            ]}
+          />
           <div>
             <input
               type="text"
@@ -284,62 +260,15 @@ const DepartmentList: React.FC = () => {
 
       {/* Pagination */}
       {pagination && (
-        <div className="mt-4 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to{' '}
-                <span className="font-medium">{Math.min(page * limit, pagination.total)}</span> of{' '}
-                <span className="font-medium">{pagination.total}</span> results
-              </p>
-            </div>
-            <div>
-              <nav
-                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
-                aria-label="Pagination"
-              >
-                <button
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1 || !departments.length}
-                  className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${
-                    page === 1 || !departments.length
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <span className="sr-only">Previous</span>
-                  <PreviousIcon />
-                </button>
-                {Array.from({ length: pagination.totalPages }, (_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => handlePageChange(i + 1)}
-                    disabled={!departments.length}
-                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                      page === i + 1
-                        ? 'z-10 bg-blue-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0'
-                    } ${!departments.length ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page === pagination.totalPages || !departments.length}
-                  className={`relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 ${
-                    page === pagination.totalPages || !departments.length
-                      ? 'opacity-50 cursor-not-allowed'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <span className="sr-only">Next</span>
-                  <NextIcon />
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
+        <Pagination
+          currentPage={page}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.total}
+          pageSize={limit}
+          onPageChange={handlePageChange}
+          onLimitChange={handleLimitChange}
+          hasItems={departments.length > 0}
+        />
       )}
     </PageContainer>
   );

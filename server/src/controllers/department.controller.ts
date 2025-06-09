@@ -117,7 +117,7 @@ export const updateDepartment = async (req: Request, res: Response) => {
       'SELECT * FROM departments WHERE id = ?',
       [req.params.id],
     );
-    if (existingDepartment.length === 0) {
+    if (!existingDepartment.length) {
       sendResponse({
         res,
         success: false,

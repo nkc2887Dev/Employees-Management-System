@@ -47,7 +47,6 @@ const Sidebar: React.FC = () => {
   const [statsOpen, setStatsOpen] = useState(false);
   const location = useLocation();
 
-  // Helper to check if any statistics route is active
   const isStatisticsActive = location.pathname.startsWith('/statistics');
 
   return (

@@ -10,6 +10,7 @@ interface SelectFieldProps {
   name: string;
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLSelectElement>) => void;
   options: Option[];
   error?: string;
   disabled?: boolean;
@@ -21,6 +22,7 @@ const SelectField: React.FC<SelectFieldProps> = ({
   name,
   value,
   onChange,
+  onBlur,
   options,
   error,
   disabled = false,
@@ -38,11 +40,12 @@ const SelectField: React.FC<SelectFieldProps> = ({
           name={name}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
           disabled={disabled}
           required={required}
           className={`mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md ${
             disabled ? 'bg-gray-100' : ''
-          } ${error ? 'border-red-300' : ''}`}
+          } ${error ? 'border-red-300 ring-red-500' : ''}`}
         >
           <option value="">Select {label}</option>
           {options.map((option) => (

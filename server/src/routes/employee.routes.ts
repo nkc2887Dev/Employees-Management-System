@@ -13,11 +13,9 @@ import { upload } from '../middlewares/upload.middleware';
 
 const router = Router();
 
-// Routes with file upload
 router.post('/', upload.single('photo'), validateRequest(employeeSchema), createEmployee);
 router.put('/:id', upload.single('photo'), validateRequest(employeeUpdateSchema), updateEmployee);
 
-// Other routes
 router.get('/', getAllEmployees);
 router.get('/stats', getEmployeeStats);
 router.get('/:id', getEmployeeById);
