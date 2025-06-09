@@ -12,3 +12,5 @@ export { default as MoneyIcon } from './MoneyIcon';
 export { default as BarChartIcon } from './BarChartIcon';
 export { default as AwardIcon } from './AwardIcon';
 export { default as DeleteIcon } from './DeleteIcon';
+export { default as ChevronDownIcon } from './ChevronDownIcon';
+export { default as CalendarIcon } from './CalendarIcon';

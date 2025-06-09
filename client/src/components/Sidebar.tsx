@@ -8,6 +8,7 @@ import {
   AwardIcon,
   MenuIcon,
   CloseIcon,
+  ChevronDownIcon,
 } from '../icons';
 import ROUTES from '../utils/constants/routes';
 
@@ -93,20 +94,7 @@ const Sidebar: React.FC = () => {
             <BarChartIcon className="w-6 h-6" />
             {open && <span className="text-base font-medium flex-1 text-left">Statistics</span>}
             {open && (
-              <svg
-                className={`w-4 h-4 ml-auto transition-transform ${statsOpen ? 'rotate-180' : ''}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
+              <ChevronDownIcon className={`w-4 h-4 ml-auto transition-transform ${statsOpen ? 'rotate-180' : ''}`} />
             )}
           </button>
           {(open ? statsOpen : isStatisticsActive) && (
