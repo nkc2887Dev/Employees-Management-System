@@ -5,6 +5,7 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { getEmployees } from '../services/employee.service';
 import path from 'path';
 import fs from 'fs';
+import MESSAGE from 'src/constants/messages.constant';
 
 interface Employee extends RowDataPacket {
   id: number;
@@ -50,7 +51,7 @@ export const createEmployee = async (req: Request, res: Response) => {
       sendResponse({
         res,
         success: false,
-        message: 'Invalid department ID',
+        message: MESSAGE.ERROR.DEPARTMENTS.INVALID_ID,
         statusCode: 400,
       });
       return;
@@ -92,7 +93,7 @@ export const createEmployee = async (req: Request, res: Response) => {
       sendResponse({
         res,
         success: false,
-        message: 'Failed to create employee',
+        message: MESSAGE.ERROR.EMPLOYEES.CREATED,
         statusCode: 500,
       });
       return;
@@ -106,7 +107,7 @@ export const createEmployee = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: true,
-      message: 'Employee created successfully',
+      message: MESSAGE.SUCCESS.EMPLOYEES.CREATED,
       data: employeeWithPhotoUrl,
       statusCode: 201,
     });
@@ -118,7 +119,7 @@ export const createEmployee = async (req: Request, res: Response) => {
       message:
         error.code === 'ER_DUP_ENTRY'
           ? 'Email already exists'
-          : error.message || 'Failed to create employee',
+          : error.message || MESSAGE.ERROR.EMPLOYEES.CREATED,
       statusCode: error.code === 'ER_DUP_ENTRY' ? 400 : 500,
     });
   }
@@ -143,14 +144,14 @@ export const getAllEmployees = async (req: Request, res: Response) => {
         totalPages: Math.ceil(result.total / result.limit),
       },
       statusCode: 200,
-      message: 'Employees fetched successfully',
+      message: MESSAGE.SUCCESS.EMPLOYEES.FETCHED,
     });
   } catch (error) {
     console.error('Error fetching employees:', error);
     sendResponse({
       res,
       success: false,
-      message: 'Failed to fetch employees',
+      message: error.message || MESSAGE.ERROR.EMPLOYEES.FETCHED,
       statusCode: 500,
     });
   }
@@ -167,7 +168,7 @@ export const getEmployeeById = async (req: Request, res: Response) => {
       sendResponse({
         res,
         success: false,
-        message: 'Employee not found',
+        message:  MESSAGE.ERROR.EMPLOYEES.NOT_FOUND,
         statusCode: 404,
       });
       return;
@@ -183,14 +184,14 @@ export const getEmployeeById = async (req: Request, res: Response) => {
       success: true,
       data: employeeWithPhotoUrl,
       statusCode: 200,
-      message: 'Employee fetched successfully',
+      message: MESSAGE.SUCCESS.EMPLOYEES.FETCHED,
     });
   } catch (error) {
     console.error('Error fetching employee:', error);
     sendResponse({
       res,
       success: false,
-      message: 'Failed to fetch employee',
+      message: error.message || MESSAGE.ERROR.EMPLOYEES.FETCHED,
       statusCode: 500,
     });
   }
@@ -208,7 +209,7 @@ export const updateEmployee = async (req: Request, res: Response) => {
       sendResponse({
         res,
         success: false,
-        message: 'Employee not found',
+        message: MESSAGE.ERROR.EMPLOYEES.NOT_FOUND,
         statusCode: 404,
       });
       return;
@@ -301,7 +302,7 @@ export const updateEmployee = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: true,
-      message: 'Employee updated successfully',
+      message: MESSAGE.SUCCESS.EMPLOYEES.UPDATED,
       data: employeeWithPhotoUrl,
       statusCode: 200,
     });
@@ -310,7 +311,7 @@ export const updateEmployee = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: false,
-      message: error.message || 'Failed to update employee',
+      message: error.message || MESSAGE.ERROR.EMPLOYEES.UPDATED,
       statusCode: 500,
     });
   }
@@ -326,7 +327,7 @@ export const deleteEmployee = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: true,
-      message: 'Employee deleted successfully',
+      message: MESSAGE.SUCCESS.EMPLOYEES.DELETED,
       data: result,
       statusCode: 200,
     });
@@ -334,7 +335,7 @@ export const deleteEmployee = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: false,
-      message: 'Failed to delete employee',
+      message: error.message || MESSAGE.ERROR.EMPLOYEES.DELETED,
       statusCode: 500,
     });
   }
@@ -407,14 +408,14 @@ export const getEmployeeStats = async (_req: Request, res: Response) => {
       success: true,
       data: result,
       statusCode: 200,
-      message: 'Employee statistics fetched successfully',
+      message: MESSAGE.SUCCESS.EMPLOYEES.STATS
     });
   } catch (error: any) {
     console.error('Error in getEmployeeStats:', error);
     sendResponse({
       res,
       success: false,
-      message: error.message || 'Failed to fetch employee statistics',
+      message: error.message || MESSAGE.ERROR.EMPLOYEES.STATS,
       statusCode: 500,
     });
   }

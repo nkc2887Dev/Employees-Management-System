@@ -3,6 +3,7 @@ import { sendResponse } from '../utils/sendResponse';
 import { createDepartmentService, getDepartmentsService } from '../services/department.service';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import pool from '../config/database';
+import MESSAGE from 'src/constants/messages.constant';
 
 interface Department extends RowDataPacket {
   id: number;
@@ -19,7 +20,7 @@ export const createDepartment = async (req: Request, res: Response) => {
       success: true,
       statusCode: 201,
       data: result,
-      message: 'Department created successfully',
+      message: MESSAGE.SUCCESS.DEPARTMENTS.CREATED
     });
   } catch (error) {
     console.error('Error creating departments:', error);
@@ -27,7 +28,7 @@ export const createDepartment = async (req: Request, res: Response) => {
       res,
       success: false,
       statusCode: 500,
-      message: 'Failed to create department',
+      message: error.message || MESSAGE.ERROR.DEPARTMENTS.CREATED,
     });
   }
 };
@@ -51,14 +52,14 @@ export const getAllDepartments = async (req: Request, res: Response) => {
         totalPages: Math.ceil(result.total / result.limit),
       },
       statusCode: 200,
-      message: 'Departments fetched successfully',
+      message: MESSAGE.SUCCESS.DEPARTMENTS.FETCHED,
     });
   } catch (error) {
     console.error('Error fetching departments:', error);
     sendResponse({
       res,
       success: false,
-      message: 'Failed to fetch departments',
+      message: error.message || MESSAGE.ERROR.DEPARTMENTS.FETCHED,
       statusCode: 500,
     });
   }
@@ -84,7 +85,7 @@ export const getDepartmentById = async (req: Request, res: Response) => {
       sendResponse({
         res,
         success: false,
-        message: 'Department not found',
+        message: MESSAGE.ERROR.DEPARTMENTS.NOT_FOUND,
         statusCode: 404,
       });
       return;
@@ -98,14 +99,14 @@ export const getDepartmentById = async (req: Request, res: Response) => {
       success: true,
       data: department,
       statusCode: 200,
-      message: 'Department fetched successfully',
+      message: MESSAGE.SUCCESS.DEPARTMENTS.FETCHED,
     });
   } catch (error) {
     console.error('Error fetching department:', error);
     sendResponse({
       res,
       success: false,
-      message: 'Failed to fetch department',
+      message: error.message || MESSAGE.ERROR.DEPARTMENTS.FETCHED,
       statusCode: 500,
     });
   }
@@ -121,7 +122,7 @@ export const updateDepartment = async (req: Request, res: Response) => {
       sendResponse({
         res,
         success: false,
-        message: 'Department not found',
+        message: MESSAGE.ERROR.DEPARTMENTS.NOT_FOUND,
         statusCode: 404,
       });
       return;
@@ -158,7 +159,7 @@ export const updateDepartment = async (req: Request, res: Response) => {
       sendResponse({
         res,
         success: false,
-        message: 'Failed to fetch updated department',
+        message: MESSAGE.ERROR.DEPARTMENTS.UPDATED,
         statusCode: 500,
       });
       return;
@@ -166,7 +167,7 @@ export const updateDepartment = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: true,
-      message: 'Department updated successfully',
+      message: MESSAGE.SUCCESS.DEPARTMENTS.UPDATED,
       data: updatedDepartment[0],
       statusCode: 200,
     });
@@ -175,7 +176,7 @@ export const updateDepartment = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: false,
-      message: error.message || 'Failed to update department',
+      message: error.message || MESSAGE.ERROR.DEPARTMENTS.UPDATED,
       statusCode: 500,
     });
   }
@@ -189,7 +190,7 @@ export const deleteDepartment = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: true,
-      message: 'Department deleted successfully',
+      message: MESSAGE.SUCCESS.DEPARTMENTS.DELETED,
       data: result,
       statusCode: 200,
     });
@@ -197,7 +198,7 @@ export const deleteDepartment = async (req: Request, res: Response) => {
     sendResponse({
       res,
       success: false,
-      message: 'Failed to delete department',
+      message: error.message || MESSAGE.ERROR.DEPARTMENTS.DELETED,
       statusCode: 500,
     });
   }
