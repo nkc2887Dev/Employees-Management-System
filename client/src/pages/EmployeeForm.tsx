@@ -80,7 +80,6 @@ const EmployeeForm: React.FC = () => {
             error={formik.touched.department_id ? formik.errors.department_id : undefined}
             required={true}
             options={[
-              { value: '', label: 'Select Department' },
               ...departments.map((dept) => ({
                 value: dept.id.toString(),
                 label: dept.name,
