@@ -122,7 +122,7 @@ const EmployeeForm: React.FC = () => {
             {isEditing && formik.values.currentPhoto && (
               <div className="mt-2 mb-4">
                 <img
-                  src={getImageUrl(formik.values.currentPhoto)}
+                  src={getImageUrl(formik.values.currentPhoto) ?? ''}
                   alt={formik.values.name}
                   className="h-32 w-32 rounded-lg object-cover"
                 />
